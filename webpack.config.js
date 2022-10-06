@@ -20,23 +20,7 @@ module.exports = {
     liveReload: true,
     open: true,
   },
-  // optimization: {
-  //   minimizer:
-  //     webpackMode === "production"
-  //       ? [
-  //           new TerserPlugin({
-  //             terserOptions: {
-  //               compress: {
-  //                 drop_console: true,
-  //               },
-  //             },
-  //           }),
-  //         ]
-  //       : [],
-  //   splitChunks: {
-  //     chunks: "all",
-  //   },
-  // },
+
   module: {
     rules: [
       {
@@ -68,7 +52,7 @@ module.exports = {
         { from: "./src/css", to: "./css" },
         // { from: "./src/textures", to: "./textures" },
         // { from: "./src/images", to: "./images" },
-        // { from: "./src/models", to: "./models" },
+        { from: "./src/assets/", to: "./assets" },
         // { from: "./src/sounds", to: "./sounds" }
       ],
     }),

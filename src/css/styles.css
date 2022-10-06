@@ -14,3 +14,14 @@ body {
   left: 0;
   top: 0;
 }
+
+#place-button {
+  position: absolute;
+  border-radius: 15px;
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: none;
+  padding: 6px 16px;
+  z-index: 1;
+}

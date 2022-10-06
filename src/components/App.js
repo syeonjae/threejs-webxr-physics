@@ -1,8 +1,11 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { ARButton } from "three/examples/jsm/webxr/ARButton";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 export default function App() {
+  // Loader
+  const gltfLoader = new GLTFLoader().setPath("/assets/models/");
   // Renderer
   const canvas = document.getElementById("three-canvas");
   const renderer = new THREE.WebGLRenderer({
@@ -12,6 +15,8 @@ export default function App() {
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   // Scene
   const scene = new THREE.Scene();
@@ -33,6 +38,16 @@ export default function App() {
   // Controls
   const controls = new OrbitControls(camera, renderer.domElement);
 
+  // Models
+  let currentModel;
+  gltfLoader.load("domino.glb", (glb) => {
+    currentModel = glb.scene;
+    currentModel.traverse((object) => {
+      if (object.isMesh) object.castShadow = true;
+    });
+    currentModel.visible = false;
+  });
+
   // XR
   renderer.xr.enabled = true;
   let options = {
@@ -40,7 +55,7 @@ export default function App() {
     optionalFeatures: ["dom-overlay"],
   };
 
-  options.domOverlay = { root: document.body };
+  options.domOverlay = { root: document.getElementById("content") };
   document.body.appendChild(ARButton.createButton(renderer, options));
 
   // Hit Test
@@ -57,6 +72,18 @@ export default function App() {
 
   // Event
   window.addEventListener("resize", setSize, false);
+  document.getElementById("place-button").addEventListener(
+    "click",
+    () => {
+      if (reticle.visible) {
+        if (currentModel.isMesh) {
+          currentModel.position.setFromMatrixPosition(reticle.matrix);
+          currentModel.visible = true;
+        }
+      }
+    },
+    false
+  );
 
   // Function
   function setSize() {
