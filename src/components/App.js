@@ -2,10 +2,13 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { ARButton } from "three/examples/jsm/webxr/ARButton";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { Domino } from "./Domino";
 
 export default function App() {
+  // Dom
+  const placeButton = document.getElementById("place-button");
   // Loader
-  const gltfLoader = new GLTFLoader().setPath("/assets/models/");
+  const gltfLoader = new GLTFLoader().setPath("./assets/models/");
   // Renderer
   const canvas = document.getElementById("three-canvas");
   const renderer = new THREE.WebGLRenderer({
@@ -39,14 +42,6 @@ export default function App() {
   const controls = new OrbitControls(camera, renderer.domElement);
 
   // Models
-  let currentModel;
-  gltfLoader.load("domino.glb", (glb) => {
-    currentModel = glb.scene;
-    currentModel.traverse((object) => {
-      if (object.isMesh) object.castShadow = true;
-    });
-    currentModel.visible = false;
-  });
 
   // XR
   renderer.xr.enabled = true;
@@ -63,7 +58,7 @@ export default function App() {
   let hitTestSourceRequested = false;
 
   const reticle = new THREE.Mesh(
-    new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2),
+    new THREE.RingGeometry(0.01, 0.02, 32).rotateX(-Math.PI / 2),
     new THREE.MeshBasicMaterial()
   );
   reticle.matrixAutoUpdate = false;
@@ -72,14 +67,16 @@ export default function App() {
 
   // Event
   window.addEventListener("resize", setSize, false);
-  document.getElementById("place-button").addEventListener(
+  placeButton.addEventListener(
     "click",
     () => {
       if (reticle.visible) {
-        if (currentModel.isMesh) {
-          currentModel.position.setFromMatrixPosition(reticle.matrix);
-          currentModel.visible = true;
-        }
+        new Domino({
+          scene: scene,
+          gltfLoader: gltfLoader,
+          scene: scene,
+          reticle: reticle,
+        });
       }
     },
     false
@@ -134,6 +131,7 @@ export default function App() {
 
         if (hitTestResults.length) {
           let hit = hitTestResults[0];
+          document.getElementById("place-button").style.display = "block";
 
           reticle.visible = true;
           reticle.matrix.fromArray(
@@ -141,6 +139,7 @@ export default function App() {
           );
         } else {
           reticle.visible = false;
+          document.getElementById("place-button").style.display = "none";
         }
       }
     }
