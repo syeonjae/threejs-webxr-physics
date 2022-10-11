@@ -33,7 +33,7 @@ export default function App() {
   const camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
-    1,
+    0.01,
     1000
   );
   camera.position.z = 5;
@@ -57,14 +57,14 @@ export default function App() {
   const defaultContactMaterial = new CANNON.ContactMaterial(
     defaultMaterial,
     defaultMaterial,
-    { friction: 0.5, restitution: 0.2 }
+    { friction: 0.09, restitution: 0.5 }
   );
 
   cannonWorld.defaultContactMaterial = defaultContactMaterial;
 
   const dominos = [];
 
-  // const cannonDebugger = new CannonDebugger(scene, cannonWorld);
+  const cannonDebugger = new CannonDebugger(scene, cannonWorld);
 
   const floorShape = new CANNON.Plane();
   const floorBody = new CANNON.Body({
@@ -75,7 +75,6 @@ export default function App() {
   });
   floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI / 2);
   cannonWorld.addBody(floorBody);
-  // cannonWorld.addBody(sphereBody);
 
   // Mesh
   const floorMesh = new THREE.Mesh(
@@ -118,10 +117,12 @@ export default function App() {
     raycaster.setFromCamera(pointer, camera);
     const intersects = raycaster.intersectObjects(scene.children);
     for (const intersect of intersects) {
-      intersect.object.cannonBody.applyForce(
-        new CANNON.Vec3(0, 0, -100),
-        new CANNON.Vec3(0, 0, 0)
-      );
+      if (intersect.object.parent.cannonBody) {
+        intersect.object.parent.cannonBody.applyForce(
+          new CANNON.Vec3(0, 0, -100),
+          new CANNON.Vec3(0, 0, 0)
+        );
+      }
     }
   }
 
@@ -140,10 +141,11 @@ export default function App() {
     const delta = clock.getDelta();
 
     controls.update();
-    // cannonDebugger.update();
+    //cannonDebugger.update();
     let cannonStepTime = 1 / 60;
     if (delta < 0.01) cannonStepTime = 1 / 120;
     cannonWorld.step(cannonStepTime, delta, 3);
+
     dominos.forEach((obj) => {
       if (obj.cannonBody) {
         obj.model.position.copy(obj.cannonBody.position);
@@ -186,7 +188,6 @@ export default function App() {
         if (hitTestResults.length) {
           let hit = hitTestResults[0];
           document.getElementById("place-button").style.display = "block";
-
           reticle.visible = true;
           reticle.matrix.fromArray(
             hit.getPose(referenceSpace).transform.matrix
@@ -215,15 +216,14 @@ export default function App() {
           reticle: reticle,
           cannonWorld: cannonWorld,
         });
-
         dominos.push(domino);
       }
     },
     false
   );
-  pushButton.addEventListener("click", (e) => {
-    pointer.x = (e.clientX / window.innerWidth) * 2 + 1;
-    pointer.y = -((e.clientY / window.innerHeight) * 2 + 1);
+  window.addEventListener("click", (e) => {
+    pointer.x = (e.clientX / canvas.clientWidth) * 2 - 1;
+    pointer.y = -((e.clientY / canvas.clientHeight) * 2 - 1);
     onClickEvent();
   });
 }

@@ -21,7 +21,6 @@ export class Domino {
         this.model.position.setFromMatrixPosition(info.reticle.matrix);
         this.model.visible = true;
         info.scene.add(this.model);
-
         // For Random
         // this.model.position.set(Math.random() * 3, 0, Math.random() * 3)
 
@@ -38,7 +37,7 @@ export class Domino {
 
   setCannonBody() {
     this.cannonBody = new Body({
-      mass: 1,
+      mass: 10,
       //position: new Vec3(this.x, this.y, this.z),
       shape: new Box(new Vec3(this.width / 2, this.height / 2, this.depth / 2)),
     });
@@ -47,6 +46,7 @@ export class Domino {
       new Vec3(0, 1, 0),
       this.rotationY
     );
+    this.model.name = "Domino";
     this.model.cannonBody = this.cannonBody;
     this.cannonWorld.addBody(this.cannonBody);
   }
