@@ -16,10 +16,24 @@ body {
 }
 
 #place-button {
+  cursor: pointer;
+
   position: absolute;
   border-radius: 15px;
   bottom: 15%;
-  left: 50%;
+  left: 55%;
+  transform: translateX(-50%);
+  border: none;
+  padding: 6px 16px;
+  z-index: 1;
+}
+
+#push-button {
+  cursor: pointer;
+  position: absolute;
+  border-radius: 15px;
+  bottom: 15%;
+  left: 45%;
   transform: translateX(-50%);
   border: none;
   padding: 6px 16px;

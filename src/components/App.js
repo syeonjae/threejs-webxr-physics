@@ -3,10 +3,15 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { ARButton } from "three/examples/jsm/webxr/ARButton";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { Domino } from "./Domino";
+import * as CANNON from "cannon-es";
+import CannonDebugger from "cannon-es-debugger";
 
 export default function App() {
+  // Clock
+  const clock = new THREE.Clock();
   // Dom
   const placeButton = document.getElementById("place-button");
+  const pushButton = document.getElementById("push-button");
   // Loader
   const gltfLoader = new GLTFLoader().setPath("./assets/models/");
   // Renderer
@@ -41,7 +46,46 @@ export default function App() {
   // Controls
   const controls = new OrbitControls(camera, renderer.domElement);
 
-  // Models
+  // Cannon (Physics)
+  const cannonWorld = new CANNON.World();
+  cannonWorld.gravity.set(0, -10, 0);
+
+  cannonWorld.allowSleep = true;
+  cannonWorld.broadphase = new CANNON.SAPBroadphase(cannonWorld);
+
+  const defaultMaterial = new CANNON.Material("default");
+  const defaultContactMaterial = new CANNON.ContactMaterial(
+    defaultMaterial,
+    defaultMaterial,
+    { friction: 0.5, restitution: 0.2 }
+  );
+
+  cannonWorld.defaultContactMaterial = defaultContactMaterial;
+
+  const dominos = [];
+
+  // const cannonDebugger = new CannonDebugger(scene, cannonWorld);
+
+  const floorShape = new CANNON.Plane();
+  const floorBody = new CANNON.Body({
+    mass: 0,
+    position: new CANNON.Vec3(0, 0, 0),
+    shape: floorShape,
+    material: defaultMaterial,
+  });
+  floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI / 2);
+  cannonWorld.addBody(floorBody);
+  // cannonWorld.addBody(sphereBody);
+
+  // Mesh
+  const floorMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(100, 100),
+    new THREE.MeshStandardMaterial({ color: "slategray" })
+  );
+  floorMesh.rotation.x = -Math.PI / 2;
+  floorMesh.receiveShadow = true;
+  floorMesh.name = "Floor";
+  scene.add(floorMesh);
 
   // XR
   renderer.xr.enabled = true;
@@ -65,24 +109,22 @@ export default function App() {
   reticle.visible = false;
   scene.add(reticle);
 
-  // Event
-  window.addEventListener("resize", setSize, false);
-  placeButton.addEventListener(
-    "click",
-    () => {
-      if (reticle.visible) {
-        new Domino({
-          scene: scene,
-          gltfLoader: gltfLoader,
-          scene: scene,
-          reticle: reticle,
-        });
-      }
-    },
-    false
-  );
-
   // Function
+
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+
+  function onClickEvent() {
+    raycaster.setFromCamera(pointer, camera);
+    const intersects = raycaster.intersectObjects(scene.children);
+    for (const intersect of intersects) {
+      intersect.object.cannonBody.applyForce(
+        new CANNON.Vec3(0, 0, -100),
+        new CANNON.Vec3(0, 0, 0)
+      );
+    }
+  }
+
   function setSize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -95,7 +137,19 @@ export default function App() {
   }
 
   function render(time, frame) {
+    const delta = clock.getDelta();
+
     controls.update();
+    // cannonDebugger.update();
+    let cannonStepTime = 1 / 60;
+    if (delta < 0.01) cannonStepTime = 1 / 120;
+    cannonWorld.step(cannonStepTime, delta, 3);
+    dominos.forEach((obj) => {
+      if (obj.cannonBody) {
+        obj.model.position.copy(obj.cannonBody.position);
+        obj.model.quaternion.copy(obj.cannonBody.quaternion);
+      }
+    });
     HitTest(frame);
     renderer.render(scene, camera);
   }
@@ -147,4 +201,29 @@ export default function App() {
 
   // Call Function
   animate();
+
+  // Event
+  window.addEventListener("resize", setSize, false);
+  placeButton.addEventListener(
+    "click",
+    () => {
+      if (reticle.visible) {
+        let domino = new Domino({
+          scene: scene,
+          gltfLoader: gltfLoader,
+          scene: scene,
+          reticle: reticle,
+          cannonWorld: cannonWorld,
+        });
+
+        dominos.push(domino);
+      }
+    },
+    false
+  );
+  pushButton.addEventListener("click", (e) => {
+    pointer.x = (e.clientX / window.innerWidth) * 2 + 1;
+    pointer.y = -((e.clientY / window.innerHeight) * 2 + 1);
+    onClickEvent();
+  });
 }
