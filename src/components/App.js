@@ -14,7 +14,7 @@ export default function App() {
   // Boolean
   const boolObject = {
     isFloorSet: false,
-    isDebuggerMode: false,
+    isDebuggerMode: true,
   };
 
   // Clock
@@ -75,6 +75,7 @@ export default function App() {
 
   const dominos = [];
 
+  // Deb
   const cannonDebugger = new CannonDebugger(scene, cannonWorld);
 
   // Mesh
@@ -89,8 +90,7 @@ export default function App() {
   options.domOverlay = { root: document.getElementById("content") };
   document.body.appendChild(ARButton.createButton(renderer, options));
 
-  // Hit Test
-
+  // Hit Test Reticle Mesh
   const reticle = new THREE.Mesh(
     new THREE.RingGeometry(0.01, 0.02, 32).rotateX(-Math.PI / 2),
     new THREE.MeshBasicMaterial()
@@ -103,6 +103,11 @@ export default function App() {
   const gui = new dat.GUI();
   gui.add(boolObject, "isDebuggerMode").name("Physics Debugger");
 
+  // Dev Mode
+  if (boolObject.isDebuggerMode) {
+    DevMode(boolObject.isDebuggerMode);
+  }
+
   // Function
   const raycaster = Raycaster({
     scene: scene,
@@ -110,7 +115,16 @@ export default function App() {
     canvas: canvas,
   });
 
-  function DebuggerMode(isDebuggerMode) {
+  function matchPhysics() {
+    dominos.forEach((obj) => {
+      if (obj.cannonBody) {
+        obj.model.position.copy(obj.cannonBody.position);
+        obj.model.quaternion.copy(obj.cannonBody.quaternion);
+      }
+    });
+  }
+
+  function DevMode(isDebuggerMode) {
     if (isDebuggerMode) {
       const floorMesh = new THREE.Mesh(
         new THREE.PlaneGeometry(10, 10),
@@ -147,15 +161,6 @@ export default function App() {
       dominos.push(domino);
       cannonDebugger.update();
     }
-  }
-
-  function matchPhysics() {
-    dominos.forEach((obj) => {
-      if (obj.cannonBody) {
-        obj.model.position.copy(obj.cannonBody.position);
-        obj.model.quaternion.copy(obj.cannonBody.quaternion);
-      }
-    });
   }
 
   function cannonStep() {
@@ -204,7 +209,6 @@ export default function App() {
 
   // Call Function
   animate();
-  DebuggerMode(boolObject.isDebuggerMode);
 
   // Temp
   const floorShape = new CANNON.Plane();

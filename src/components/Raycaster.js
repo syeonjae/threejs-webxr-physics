@@ -26,16 +26,10 @@ export default function Raycaster(args) {
   window.addEventListener("touchend", (e) => {
     pointer.x = (e.changedTouches[0].clientX / window.innerWidth) * 2 - 1;
     pointer.y = -(e.changedTouches[0].clientY / window.innerHeight) * 2 + 1;
-    console.log("touchend");
-    console.log("pointer : ", pointer);
-    console.log("size : ", args.canvas.clientWidth, args.canvas.clientHeight);
     onClickEvnet();
   });
 
   window.addEventListener("click", (e) => {
-    // console.log(args.camera);
-    // pointer.x = args.canvas.clientWidth / 2;
-    // pointer.y = args.canvas.clientHeight / 2;
     pointer.x = (e.clientX / args.canvas.clientWidth) * 2 - 1;
     pointer.y = -((e.clientY / args.canvas.clientHeight) * 2 - 1);
     console.log("click");
