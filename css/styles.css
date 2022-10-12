@@ -29,7 +29,7 @@ body {
   transform: translateX(-50%);
   padding: 12px 6px;
   z-index: 999;
-  display: block;
+  display: none;
 }
 
 #place-floor {
@@ -46,5 +46,30 @@ body {
   transform: translateX(-50%);
   padding: 12px 6px;
   z-index: 999;
-  display: block;
+  display: none;
+}
+
+#toast {
+  position: fixed;
+  bottom: 50%;
+  left: 50%;
+  padding: 15px 20px;
+  transform: translate(-50%, -50%);
+  border-radius: 4px;
+  overflow: hidden;
+  font-size: 1rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s, visibility 0.5s, transform 0.5s;
+  background: black;
+  color: #fff;
+  width: 100px;
+  text-align: center;
+  z-index: 100000;
+}
+
+#toast.reveal {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
 }
