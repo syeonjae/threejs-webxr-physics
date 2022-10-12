@@ -22,6 +22,7 @@ export default function App() {
   // Dom
   const placeButton = document.getElementById("place-button");
   const floorButton = document.getElementById("place-floor");
+  const cameraPos = document.getElementById("camera-position");
   // Loader
   const gltfLoader = new GLTFLoader().setPath("./assets/models/");
   // Renderer
@@ -46,7 +47,7 @@ export default function App() {
     0.01,
     1000
   );
-  camera.position.z = 5;
+  camera.position.z = 1;
 
   // Light
   const ambientLight = new THREE.AmbientLight();
@@ -111,6 +112,13 @@ export default function App() {
 
   function DebuggerMode(isDebuggerMode) {
     if (isDebuggerMode) {
+      const floorMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(10, 10),
+        new THREE.MeshStandardMaterial({ color: "black" })
+      );
+      floorMesh.position.set(0, 0, 0);
+      floorMesh.rotation.x = -Math.PI / 2;
+      scene.add(floorMesh);
       const floorShape = new CANNON.Plane();
       const floorBody = new CANNON.Body({
         mass: 0,
@@ -137,6 +145,7 @@ export default function App() {
       });
 
       dominos.push(domino);
+      cannonDebugger.update();
     }
   }
 
@@ -170,6 +179,14 @@ export default function App() {
   function render(time, frame) {
     controls.update();
     // cannonDebugger.update();
+    camera.lookAt(
+      new THREE.Vector3(
+        reticle.matrix.elements[12],
+        reticle.matrix.elements[13],
+        reticle.matrix.elements[14]
+      )
+    );
+    camera.updateProjectionMatrix();
     matchPhysics();
     cannonStep();
     HitTest({
@@ -179,6 +196,9 @@ export default function App() {
       frame: frame,
     });
 
+    cameraPos.textContent = `${camera.position.x.toFixed(
+      1
+    )}, ${camera.position.y.toFixed(1)}, ${camera.position.z.toFixed(1)}`;
     renderer.render(scene, camera);
   }
 
