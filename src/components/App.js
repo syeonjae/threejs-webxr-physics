@@ -111,7 +111,32 @@ export default function App() {
 
   function DebuggerMode(isDebuggerMode) {
     if (isDebuggerMode) {
-      cannonDebugger.update();
+      const floorShape = new CANNON.Plane();
+      const floorBody = new CANNON.Body({
+        mass: 0,
+        position: new CANNON.Vec3(0, 0, 0),
+        shape: floorShape,
+        material: defaultContactMaterial,
+      });
+      floorBody.quaternion.setFromAxisAngle(
+        new CANNON.Vec3(-1, 0, 0),
+        Math.PI / 2
+      );
+      cannonWorld.addBody(floorBody);
+
+      let domino = new Domino({
+        index: 1,
+        scene: scene,
+        gltfLoader: gltfLoader,
+        scene: scene,
+        reticle: reticle,
+        cannonWorld: cannonWorld,
+        x: 0,
+        y: 0,
+        z: 0,
+      });
+
+      dominos.push(domino);
     }
   }
 
@@ -144,7 +169,7 @@ export default function App() {
 
   function render(time, frame) {
     controls.update();
-    cannonDebugger.update();
+    // cannonDebugger.update();
     matchPhysics();
     cannonStep();
     HitTest({
@@ -159,6 +184,11 @@ export default function App() {
 
   // Call Function
   animate();
+  DebuggerMode(boolObject.isDebuggerMode);
+
+  // Temp
+  const floorShape = new CANNON.Plane();
+  let floorBody;
 
   // Event
   window.addEventListener("resize", setSize, false);
@@ -166,29 +196,31 @@ export default function App() {
   placeButton.addEventListener(
     "click",
     () => {
+      let i = 0;
       if (reticle.visible) {
         let domino = new Domino({
+          index: i,
           scene: scene,
           gltfLoader: gltfLoader,
           scene: scene,
           reticle: reticle,
           cannonWorld: cannonWorld,
           x: reticle.matrix.elements[12],
-          y: reticle.matrix.elements[13],
+          y: floorBody.position.y,
           z: reticle.matrix.elements[14],
         });
         dominos.push(domino);
       }
+      i++;
     },
     false
   );
 
   floorButton.addEventListener("click", () => {
     floorButton.style.display = "none";
-    const floorShape = new CANNON.Plane();
-    const floorBody = new CANNON.Body({
+    floorBody = new CANNON.Body({
       mass: 0,
-      position: new CANNON.Vec3(0, -1.8, 0),
+      position: new CANNON.Vec3(0, reticle.matrix.elements[13], 0),
       shape: floorShape,
       material: defaultMaterial,
     });

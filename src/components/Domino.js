@@ -11,6 +11,7 @@ export class Domino {
     this.y = info.y || 0;
     this.z = info.z || 0;
     this.rotationY = info.rotationY || 0;
+    this.index = info.index;
 
     // For Debug
 
@@ -21,6 +22,7 @@ export class Domino {
         this.model.scale.set(0.1, 0.1, 0.1);
         this.model.position.setFromMatrixPosition(info.reticle.matrix);
         this.model.visible = true;
+        this.model.name = `도미노 ${this.index}`;
         info.scene.add(this.model);
         // For Random
         // this.model.position.set(Math.random() * 3, 0, Math.random() * 3)
@@ -46,7 +48,7 @@ export class Domino {
       new Vec3(0, 1, 0),
       this.rotationY
     );
-    this.model.name = "Domino";
+    this.model.name = `Domino ${this.index}`;
     this.model.cannonBody = this.cannonBody;
     this.cannonWorld.addBody(this.cannonBody);
   }
