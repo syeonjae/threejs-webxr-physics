@@ -78,7 +78,7 @@ body {
   transition: opacity 0.5s, visibility 0.5s, transform 0.5s;
   background: black;
   color: #fff;
-  width: 120px;
+  width: 140px;
   text-align: center;
   z-index: 100000;
 }
