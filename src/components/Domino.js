@@ -5,6 +5,7 @@ export class Domino {
     this.width = info.width || 0.06;
     this.height = info.height || 0.1;
     this.depth = info.depth || 0.02;
+    this.reticle = info.reticle;
 
     this.x = info.x || 0;
     this.y = info.y || 0;
@@ -38,10 +39,9 @@ export class Domino {
   setCannonBody() {
     this.cannonBody = new Body({
       mass: 10,
-      //position: new Vec3(this.x, this.y, this.z),
+      position: new Vec3(this.x, this.y, this.z),
       shape: new Box(new Vec3(this.width / 2, this.height / 2, this.depth / 2)),
     });
-
     this.cannonBody.quaternion.setFromAxisAngle(
       new Vec3(0, 1, 0),
       this.rotationY

@@ -5,13 +5,23 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { Domino } from "./Domino";
 import * as CANNON from "cannon-es";
 import CannonDebugger from "cannon-es-debugger";
+import Toast from "./Toast";
+import HitTest from "./HitTest";
+import Raycaster from "./Raycaster";
+import dat from "dat.gui";
 
 export default function App() {
+  // Boolean
+  const boolObject = {
+    isFloorSet: false,
+    isDebuggerMode: false,
+  };
+
   // Clock
   const clock = new THREE.Clock();
   // Dom
   const placeButton = document.getElementById("place-button");
-  const pushButton = document.getElementById("push-button");
+  const floorButton = document.getElementById("place-floor");
   // Loader
   const gltfLoader = new GLTFLoader().setPath("./assets/models/");
   // Renderer
@@ -66,25 +76,7 @@ export default function App() {
 
   const cannonDebugger = new CannonDebugger(scene, cannonWorld);
 
-  const floorShape = new CANNON.Plane();
-  const floorBody = new CANNON.Body({
-    mass: 0,
-    position: new CANNON.Vec3(0, 0, 0),
-    shape: floorShape,
-    material: defaultMaterial,
-  });
-  floorBody.quaternion.setFromAxisAngle(new CANNON.Vec3(-1, 0, 0), Math.PI / 2);
-  cannonWorld.addBody(floorBody);
-
   // Mesh
-  const floorMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(100, 100),
-    new THREE.MeshStandardMaterial({ color: "slategray" })
-  );
-  floorMesh.rotation.x = -Math.PI / 2;
-  floorMesh.receiveShadow = true;
-  floorMesh.name = "Floor";
-  scene.add(floorMesh);
 
   // XR
   renderer.xr.enabled = true;
@@ -97,8 +89,6 @@ export default function App() {
   document.body.appendChild(ARButton.createButton(renderer, options));
 
   // Hit Test
-  let hitTestSource = null;
-  let hitTestSourceRequested = false;
 
   const reticle = new THREE.Mesh(
     new THREE.RingGeometry(0.01, 0.02, 32).rotateX(-Math.PI / 2),
@@ -108,22 +98,37 @@ export default function App() {
   reticle.visible = false;
   scene.add(reticle);
 
+  // Dat GUI
+  const gui = new dat.GUI();
+  gui.add(boolObject, "isDebuggerMode").name("Physics Debugger");
+
   // Function
+  const raycaster = Raycaster({
+    scene: scene,
+    camera: camera,
+    canvas: canvas,
+  });
 
-  const raycaster = new THREE.Raycaster();
-  const pointer = new THREE.Vector2();
-
-  function onClickEvent() {
-    raycaster.setFromCamera(pointer, camera);
-    const intersects = raycaster.intersectObjects(scene.children);
-    for (const intersect of intersects) {
-      if (intersect.object.parent.cannonBody) {
-        intersect.object.parent.cannonBody.applyForce(
-          new CANNON.Vec3(0, 0, -100),
-          new CANNON.Vec3(0, 0, 0)
-        );
-      }
+  function DebuggerMode(isDebuggerMode) {
+    if (isDebuggerMode) {
+      cannonDebugger.update();
     }
+  }
+
+  function matchPhysics() {
+    dominos.forEach((obj) => {
+      if (obj.cannonBody) {
+        obj.model.position.copy(obj.cannonBody.position);
+        obj.model.quaternion.copy(obj.cannonBody.quaternion);
+      }
+    });
+  }
+
+  function cannonStep() {
+    const delta = clock.getDelta();
+
+    let cannonStepTime = delta < 0.01 ? 1 / 120 : 1 / 60;
+    cannonWorld.step(cannonStepTime, delta, 3);
   }
 
   function setSize() {
@@ -138,66 +143,18 @@ export default function App() {
   }
 
   function render(time, frame) {
-    const delta = clock.getDelta();
-
     controls.update();
-    //cannonDebugger.update();
-    let cannonStepTime = 1 / 60;
-    if (delta < 0.01) cannonStepTime = 1 / 120;
-    cannonWorld.step(cannonStepTime, delta, 3);
-
-    dominos.forEach((obj) => {
-      if (obj.cannonBody) {
-        obj.model.position.copy(obj.cannonBody.position);
-        obj.model.quaternion.copy(obj.cannonBody.quaternion);
-      }
+    cannonDebugger.update();
+    matchPhysics();
+    cannonStep();
+    HitTest({
+      renderer: renderer,
+      isFloorSet: boolObject.isFloorSet,
+      reticle: reticle,
+      frame: frame,
     });
-    HitTest(frame);
+
     renderer.render(scene, camera);
-  }
-
-  function HitTest(frame) {
-    if (frame) {
-      let referenceSpace = renderer.xr.getReferenceSpace();
-      let session = renderer.xr.getSession();
-
-      // Get Session
-      if (hitTestSourceRequested === false) {
-        session.requestReferenceSpace("viewer").then(function (referenceSpace) {
-          session
-            .requestHitTestSource({ space: referenceSpace })
-            .then(function (source) {
-              hitTestSource = source;
-            });
-        });
-
-        // Exit Session Event
-        session.addEventListener("end", () => {
-          hitTestSource = null;
-          hitTestSourceRequested = false;
-          reticle.visible = false;
-          document.getElementById("place-button").style.display = "none";
-        });
-
-        hitTestSourceRequested = true;
-      }
-      // If Get Session
-      if (hitTestSource) {
-        let hitTestResults = frame.getHitTestResults(hitTestSource);
-
-        if (hitTestResults.length) {
-          let hit = hitTestResults[0];
-          document.getElementById("place-button").style.display = "block";
-          reticle.visible = true;
-          reticle.matrix.fromArray(
-            hit.getPose(referenceSpace).transform.matrix
-          );
-        } else {
-          reticle.visible = false;
-          document.getElementById("place-button").style.display = "none";
-        }
-      }
-    }
   }
 
   // Call Function
@@ -205,6 +162,7 @@ export default function App() {
 
   // Event
   window.addEventListener("resize", setSize, false);
+
   placeButton.addEventListener(
     "click",
     () => {
@@ -215,15 +173,29 @@ export default function App() {
           scene: scene,
           reticle: reticle,
           cannonWorld: cannonWorld,
+          x: reticle.matrix.elements[12],
+          y: reticle.matrix.elements[13],
+          z: reticle.matrix.elements[14],
         });
         dominos.push(domino);
       }
     },
     false
   );
-  window.addEventListener("click", (e) => {
-    pointer.x = (e.clientX / canvas.clientWidth) * 2 - 1;
-    pointer.y = -((e.clientY / canvas.clientHeight) * 2 - 1);
-    onClickEvent();
+
+  floorButton.addEventListener("click", () => {
+    floorButton.style.display = "none";
+    const floorShape = new CANNON.Plane();
+    const floorBody = new CANNON.Body({
+      mass: 0,
+      position: new CANNON.Vec3(0, -1.8, 0),
+      shape: floorShape,
+      material: defaultMaterial,
+    });
+    floorBody.quaternion.setFromAxisAngle(
+      new CANNON.Vec3(-1, 0, 0),
+      Math.PI / 2
+    );
+    cannonWorld.addBody(floorBody);
   });
 }
