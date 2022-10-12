@@ -48,6 +48,22 @@ body {
   z-index: 999;
 }
 
+#camera-position {
+  position: absolute;
+  text-align: center;
+  width: 150px;
+  border-radius: 4px;
+  border: 1px solid rgb(255, 255, 255);
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  opacity: 0.7;
+  left: 50%;
+  top: 30%;
+  transform: translateX(-50%);
+  padding: 12px 6px;
+  z-index: 999;
+}
+
 #toast {
   position: fixed;
   bottom: 50%;
