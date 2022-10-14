@@ -8,7 +8,8 @@ import Toast from "./Toast";
 import HitTest from "./HitTest";
 import Raycaster from "./Raycaster";
 import dat from "dat.gui";
-import { cm1, dom } from "./common";
+import { cm1, cm2, dom, objects } from "./common";
+import { PreventDragClick } from "./PreventDragClick";
 
 export default function App() {
   // Clock
@@ -18,7 +19,7 @@ export default function App() {
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
     alpha: true,
-    canvas: cm1.canvas,
+    canvas: dom.canvas,
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
@@ -43,23 +44,33 @@ export default function App() {
   const controls = new OrbitControls(camera, renderer.domElement);
 
   // Cannon (Physics)
-  const cannonWorld = new CANNON.World();
-  cannonWorld.gravity.set(0, -10, 0);
+  cm1.world.gravity.set(0, -10, 0);
 
-  cannonWorld.allowSleep = true;
-  cannonWorld.broadphase = new CANNON.SAPBroadphase(cannonWorld);
+  cm1.world.allowSleep = true;
+  cm1.world.broadphase = new CANNON.SAPBroadphase(cm1.world);
 
   const defaultMaterial = new CANNON.Material("default");
   const defaultContactMaterial = new CANNON.ContactMaterial(
     defaultMaterial,
     defaultMaterial,
-    { friction: 0.2, restitution: 0.3 }
+    { friction: 0.009, restitution: 0.5 }
   );
-  cannonWorld.defaultContactMaterial = defaultContactMaterial;
+  cm1.world.defaultContactMaterial = defaultContactMaterial;
+
+  // dat.GUI
+  const gui = new dat.GUI();
+  gui.add(cm2, "devMode");
 
   // Debugger
-  const cannonDebugger = new CannonDebugger(cm1.scene, cannonWorld);
-
+  const cannonDebugger = new CannonDebugger(cm1.scene, cm1.world, {
+    onUpdate(body, mesh) {
+      if (cm2.devMode) {
+        mesh.visible = true;
+      } else {
+        mesh.visible = false;
+      }
+    },
+  });
   // XR
   renderer.xr.enabled = true;
   let options = {
@@ -83,11 +94,11 @@ export default function App() {
   const raycaster = Raycaster({
     scene: cm1.scene,
     camera: camera,
-    canvas: cm1.canvas,
+    canvas: dom.canvas,
   });
 
   function matchPhysics() {
-    dominos.forEach((obj) => {
+    objects.dominos.forEach((obj) => {
       if (obj.cannonBody) {
         obj.model.position.copy(obj.cannonBody.position);
         obj.model.quaternion.copy(obj.cannonBody.quaternion);
@@ -98,7 +109,7 @@ export default function App() {
   function cannonStep() {
     const delta = clock.getDelta();
     let cannonStepTime = delta < 0.01 ? 1 / 120 : 1 / 60;
-    cannonWorld.step(cannonStepTime, delta, 3);
+    cm1.world.step(cannonStepTime, delta, 3);
   }
 
   function setSize() {
@@ -111,9 +122,10 @@ export default function App() {
   function animate() {
     renderer.setAnimationLoop(render);
   }
-
   function render(time, frame) {
     controls.update();
+
+    cannonDebugger.update();
 
     camera.lookAt(
       new THREE.Vector3(
@@ -136,12 +148,11 @@ export default function App() {
 
     renderer.render(cm1.scene, camera);
   }
-
   const floorShape = new CANNON.Plane();
   let floorBody;
   function setXRFloor() {
     Toast("Floor Set");
-    dom.floorButton.style.display = "none";
+    dom.floor.style.display = "none";
 
     floorBody = new CANNON.Body({
       mass: 0,
@@ -153,10 +164,8 @@ export default function App() {
       new CANNON.Vec3(-1, 0, 0),
       Math.PI / 2
     );
-    cannonWorld.addBody(floorBody);
+    cm1.world.addBody(floorBody);
   }
-
-  const dominos = [];
   function setXRDomino() {
     let i = 0;
     if (reticle.visible) {
@@ -165,12 +174,12 @@ export default function App() {
         scene: cm1.scene,
         gltfLoader: cm1.gltfLoader,
         reticle: reticle,
-        cannonWorld: cannonWorld,
+        cannonWorld: cm1.world,
         x: reticle.matrix.elements[12],
         y: floorBody.position.y,
         z: reticle.matrix.elements[14],
       });
-      dominos.push(domino);
+      objects.dominos.push(domino);
     }
     i++;
   }
@@ -180,6 +189,10 @@ export default function App() {
 
   // Event
   window.addEventListener("resize", setSize, false);
-  dom.domino.addEventListener("click", setXRDomino, false);
+  if (cm2.devMode) {
+    dom.canvas.addEventListener("click", setXRDomino, false);
+  } else {
+    dom.domino.addEventListener("click", setXRDomino, false);
+  }
   dom.floor.addEventListener("click", setXRFloor, false);
 }

@@ -33,6 +33,7 @@ body {
 }
 
 #place-floor {
+  display: none;
   cursor: pointer;
   position: absolute;
   width: 100px;

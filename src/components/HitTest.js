@@ -34,7 +34,7 @@ export default function HitTest(args) {
       if (hitTestResults.length) {
         let hit = hitTestResults[0];
         document.getElementById("place-button").style.display = "block";
-
+        document.getElementById("place-floor").style.display = "block";
         args.reticle.visible = true;
         args.reticle.matrix.fromArray(
           hit.getPose(referenceSpace).transform.matrix
