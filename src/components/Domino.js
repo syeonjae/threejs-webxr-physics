@@ -24,11 +24,7 @@ export class Domino {
         this.model.visible = true;
         this.model.name = `도미노 ${this.index}`;
         info.scene.add(this.model);
-        // For Random
-        // this.model.position.set(Math.random() * 3, 0, Math.random() * 3)
 
-        // For Normal
-        // this.model.position.setFromMatrixPosition(info.reticle.matrix);
         this.setCannonBody();
       },
       undefined,

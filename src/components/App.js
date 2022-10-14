@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { ARButton } from "three/examples/jsm/webxr/ARButton";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { Domino } from "./Domino";
 import * as CANNON from "cannon-es";
 import CannonDebugger from "cannon-es-debugger";
@@ -9,36 +8,22 @@ import Toast from "./Toast";
 import HitTest from "./HitTest";
 import Raycaster from "./Raycaster";
 import dat from "dat.gui";
+import { cm1, dom } from "./common";
 
 export default function App() {
-  // Boolean
-  const boolObject = {
-    isFloorSet: false,
-    isDebuggerMode: true,
-  };
-
   // Clock
   const clock = new THREE.Clock();
-  // Dom
-  const placeButton = document.getElementById("place-button");
-  const floorButton = document.getElementById("place-floor");
-  const cameraPos = document.getElementById("camera-position");
-  // Loader
-  const gltfLoader = new GLTFLoader().setPath("./assets/models/");
+
   // Renderer
-  const canvas = document.getElementById("three-canvas");
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
     alpha: true,
-    canvas: canvas,
+    canvas: cm1.canvas,
   });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-  // Scene
-  const scene = new THREE.Scene();
 
   // Camera
   const camera = new THREE.PerspectiveCamera(
@@ -52,7 +37,7 @@ export default function App() {
   // Light
   const ambientLight = new THREE.AmbientLight();
   const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-  scene.add(ambientLight, directionalLight);
+  cm1.scene.add(ambientLight, directionalLight);
 
   // Controls
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -68,17 +53,12 @@ export default function App() {
   const defaultContactMaterial = new CANNON.ContactMaterial(
     defaultMaterial,
     defaultMaterial,
-    { friction: 0.09, restitution: 0.5 }
+    { friction: 0.2, restitution: 0.3 }
   );
-
   cannonWorld.defaultContactMaterial = defaultContactMaterial;
 
-  const dominos = [];
-
-  // Deb
-  const cannonDebugger = new CannonDebugger(scene, cannonWorld);
-
-  // Mesh
+  // Debugger
+  const cannonDebugger = new CannonDebugger(cm1.scene, cannonWorld);
 
   // XR
   renderer.xr.enabled = true;
@@ -97,22 +77,13 @@ export default function App() {
   );
   reticle.matrixAutoUpdate = false;
   reticle.visible = false;
-  scene.add(reticle);
-
-  // Dat GUI
-  const gui = new dat.GUI();
-  gui.add(boolObject, "isDebuggerMode").name("Physics Debugger");
-
-  // Dev Mode
-  if (boolObject.isDebuggerMode) {
-    DevMode(boolObject.isDebuggerMode);
-  }
+  cm1.scene.add(reticle);
 
   // Function
   const raycaster = Raycaster({
-    scene: scene,
+    scene: cm1.scene,
     camera: camera,
-    canvas: canvas,
+    canvas: cm1.canvas,
   });
 
   function matchPhysics() {
@@ -124,48 +95,8 @@ export default function App() {
     });
   }
 
-  function DevMode(isDebuggerMode) {
-    if (isDebuggerMode) {
-      const floorMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(10, 10),
-        new THREE.MeshStandardMaterial({ color: "black" })
-      );
-      floorMesh.position.set(0, 0, 0);
-      floorMesh.rotation.x = -Math.PI / 2;
-      scene.add(floorMesh);
-      const floorShape = new CANNON.Plane();
-      const floorBody = new CANNON.Body({
-        mass: 0,
-        position: new CANNON.Vec3(0, 0, 0),
-        shape: floorShape,
-        material: defaultContactMaterial,
-      });
-      floorBody.quaternion.setFromAxisAngle(
-        new CANNON.Vec3(-1, 0, 0),
-        Math.PI / 2
-      );
-      cannonWorld.addBody(floorBody);
-
-      let domino = new Domino({
-        index: 1,
-        scene: scene,
-        gltfLoader: gltfLoader,
-        scene: scene,
-        reticle: reticle,
-        cannonWorld: cannonWorld,
-        x: 0,
-        y: 0,
-        z: 0,
-      });
-
-      dominos.push(domino);
-      cannonDebugger.update();
-    }
-  }
-
   function cannonStep() {
     const delta = clock.getDelta();
-
     let cannonStepTime = delta < 0.01 ? 1 / 120 : 1 / 60;
     cannonWorld.step(cannonStepTime, delta, 3);
   }
@@ -174,7 +105,7 @@ export default function App() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.render(scene, camera);
+    renderer.render(cm1.scene, camera);
   }
 
   function animate() {
@@ -183,7 +114,7 @@ export default function App() {
 
   function render(time, frame) {
     controls.update();
-    // cannonDebugger.update();
+
     camera.lookAt(
       new THREE.Vector3(
         reticle.matrix.elements[12],
@@ -192,56 +123,26 @@ export default function App() {
       )
     );
     camera.updateProjectionMatrix();
+
     matchPhysics();
+
     cannonStep();
+
     HitTest({
       renderer: renderer,
-      isFloorSet: boolObject.isFloorSet,
       reticle: reticle,
       frame: frame,
     });
 
-    cameraPos.textContent = `${camera.position.x.toFixed(
-      1
-    )}, ${camera.position.y.toFixed(1)}, ${camera.position.z.toFixed(1)}`;
-    renderer.render(scene, camera);
+    renderer.render(cm1.scene, camera);
   }
 
-  // Call Function
-  animate();
-
-  // Temp
   const floorShape = new CANNON.Plane();
   let floorBody;
+  function setXRFloor() {
+    Toast("Floor Set");
+    dom.floorButton.style.display = "none";
 
-  // Event
-  window.addEventListener("resize", setSize, false);
-
-  placeButton.addEventListener(
-    "click",
-    () => {
-      let i = 0;
-      if (reticle.visible) {
-        let domino = new Domino({
-          index: i,
-          scene: scene,
-          gltfLoader: gltfLoader,
-          scene: scene,
-          reticle: reticle,
-          cannonWorld: cannonWorld,
-          x: reticle.matrix.elements[12],
-          y: floorBody.position.y,
-          z: reticle.matrix.elements[14],
-        });
-        dominos.push(domino);
-      }
-      i++;
-    },
-    false
-  );
-
-  floorButton.addEventListener("click", () => {
-    floorButton.style.display = "none";
     floorBody = new CANNON.Body({
       mass: 0,
       position: new CANNON.Vec3(0, reticle.matrix.elements[13], 0),
@@ -253,5 +154,32 @@ export default function App() {
       Math.PI / 2
     );
     cannonWorld.addBody(floorBody);
-  });
+  }
+
+  const dominos = [];
+  function setXRDomino() {
+    let i = 0;
+    if (reticle.visible) {
+      let domino = new Domino({
+        index: i,
+        scene: cm1.scene,
+        gltfLoader: cm1.gltfLoader,
+        reticle: reticle,
+        cannonWorld: cannonWorld,
+        x: reticle.matrix.elements[12],
+        y: floorBody.position.y,
+        z: reticle.matrix.elements[14],
+      });
+      dominos.push(domino);
+    }
+    i++;
+  }
+
+  // Call Function
+  animate();
+
+  // Event
+  window.addEventListener("resize", setSize, false);
+  dom.domino.addEventListener("click", setXRDomino, false);
+  dom.floor.addEventListener("click", setXRFloor, false);
 }
