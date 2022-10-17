@@ -10,6 +10,7 @@ export const cm1 = {
 
 export const cm2 = {
   devMode: false,
+  isFloorSet: false,
 };
 
 export const dom = {
