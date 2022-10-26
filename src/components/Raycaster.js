@@ -5,7 +5,9 @@ import { cm1, cm2, dom, objects } from "./common";
 import { Domino } from "./Domino";
 import { PreventDragClick } from "./PreventDragClick";
 const preventDragClick = new PreventDragClick(dom.canvas);
+
 let spaceEvent = false;
+
 export default function Raycaster(args) {
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();

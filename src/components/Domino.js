@@ -14,7 +14,6 @@ export class Domino {
     this.index = info.index;
 
     // For Debug
-
     info.gltfLoader.load(
       "domino.glb",
       (glb) => {
@@ -23,7 +22,6 @@ export class Domino {
         this.model.visible = true;
         this.model.name = `도미노 ${this.index}`;
         info.scene.add(this.model);
-
         this.setCannonBody();
       },
       undefined,

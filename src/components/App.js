@@ -12,6 +12,7 @@ import { cm1, cm2, dom, objects } from "./common";
 import { PreventDragClick } from "./PreventDragClick";
 
 export default function App() {
+  dom.parentDomino.style.display = "none";
   // Clock
   const clock = new THREE.Clock();
 
@@ -63,13 +64,13 @@ export default function App() {
 
   // Debugger
   const cannonDebugger = new CannonDebugger(cm1.scene, cm1.world, {
-    onUpdate(body, mesh) {
-      if (cm2.devMode) {
-        mesh.visible = true;
-      } else {
-        mesh.visible = false;
-      }
-    },
+    // onUpdate(body, mesh) {
+    //   if (cm2.devMode) {
+    //     mesh.visible = true;
+    //   } else {
+    //     mesh.visible = false;
+    //   }
+    // },
   });
   // XR
   renderer.xr.enabled = true;
@@ -119,9 +120,14 @@ export default function App() {
     renderer.render(cm1.scene, camera);
   }
 
+  //////////////////////////////////////////////////
+  //////////////// Draw Function //////////////////
+  ////////////////////////////////////////////////
+
   function animate() {
     renderer.setAnimationLoop(render);
   }
+
   function render(time, frame) {
     controls.update();
 
@@ -153,6 +159,7 @@ export default function App() {
   function setXRFloor() {
     Toast("Floor Set");
     dom.floor.style.display = "none";
+    dom.parentDomino.style.display = "block";
 
     floorBody = new CANNON.Body({
       mass: 0,
@@ -165,23 +172,29 @@ export default function App() {
       Math.PI / 2
     );
     cm1.world.addBody(floorBody);
+    cm2.isFloorSet = true;
   }
   function setXRDomino() {
-    let i = 0;
-    if (reticle.visible) {
-      let domino = new Domino({
-        index: i,
-        scene: cm1.scene,
-        gltfLoader: cm1.gltfLoader,
-        reticle: reticle,
-        cannonWorld: cm1.world,
-        x: reticle.matrix.elements[12],
-        y: floorBody.position.y,
-        z: reticle.matrix.elements[14],
-      });
-      objects.dominos.push(domino);
+    // 바닥 설정이 완료 됐다면...
+    if (cm2.isFloorSet) {
+      let i = 0;
+      if (reticle.visible) {
+        let domino = new Domino({
+          index: i,
+          scene: cm1.scene,
+          gltfLoader: cm1.gltfLoader,
+          reticle: reticle,
+          cannonWorld: cm1.world,
+          x: reticle.matrix.elements[12],
+          y: floorBody.position.y,
+          z: reticle.matrix.elements[14],
+        });
+        objects.dominos.push(domino);
+      }
+      i++;
+    } else {
+      Toast("Floor 버튼을 눌러 Ground를 설정해주세요.", 2);
     }
-    i++;
   }
 
   // Call Function
@@ -189,10 +202,8 @@ export default function App() {
 
   // Event
   window.addEventListener("resize", setSize, false);
-  if (cm2.devMode) {
-    dom.canvas.addEventListener("click", setXRDomino, false);
-  } else {
-    dom.domino.addEventListener("click", setXRDomino, false);
-  }
+
+  dom.domino.addEventListener("click", setXRDomino, false);
+
   dom.floor.addEventListener("click", setXRFloor, false);
 }

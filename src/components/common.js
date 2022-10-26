@@ -16,6 +16,7 @@ export const cm2 = {
 export const dom = {
   canvas: document.getElementById("three-canvas"),
   domino: document.getElementById("place-button"),
+  parentDomino: document.getElementById("place-button-wrapper"),
   floor: document.getElementById("place-floor"),
 };
 
