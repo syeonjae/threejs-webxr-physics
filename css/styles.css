@@ -7,6 +7,7 @@
 html,
 body {
   margin: 0;
+  overflow: hidden;
 }
 
 #three-canvas {
@@ -29,11 +30,13 @@ body {
   transform: translateX(-50%);
   padding: 12px 6px;
   z-index: 999;
-  display: none;
+}
+
+#place-button:active {
+  opacity: 1;
 }
 
 #place-floor {
-  display: none;
   cursor: pointer;
   position: absolute;
   width: 100px;
@@ -42,7 +45,7 @@ body {
   background: rgba(0, 0, 0, 0.5);
   color: white;
   opacity: 0.7;
-  bottom: 120px;
+  bottom: 70px;
   left: 50%;
   transform: translateX(-50%);
   padding: 12px 6px;
@@ -79,7 +82,7 @@ body {
   transition: opacity 0.5s, visibility 0.5s, transform 0.5s;
   background: black;
   color: #fff;
-  width: 140px;
+
   text-align: center;
   z-index: 100000;
 }
@@ -88,4 +91,44 @@ body {
   opacity: 1;
   visibility: visible;
   transform: translate(-50%, 0);
+}
+
+#items-wrapper {
+  display: flex;
+  justify-content: center;
+  /* overflow: hidden; */
+  border-radius: 15px;
+  width: 100px;
+  height: 237px;
+  position: fixed;
+  bottom: 20%;
+  left: 5%;
+  border: 1px solid black;
+}
+
+#items {
+  transition: all 1s ease-in-out;
+  width: 64px;
+  height: 632px;
+  position: absolute;
+  top: 15px;
+  border-radius: 15px;
+  border: 1px solid black;
+}
+
+.item {
+  cursor: pointer;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 1px solid black;
+  margin-bottom: 15px;
+}
+
+.item:last-child {
+  margin-bottom: 0px;
+}
+
+.item:active {
+  background-color: #ccc;
 }
