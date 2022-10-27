@@ -10,7 +10,9 @@ import Raycaster from "./Raycaster";
 import dat from "dat.gui";
 import { cm1, cm2, dom, objects } from "./common";
 import { PreventDragClick } from "./PreventDragClick";
+import test from "./test";
 
+test();
 export default function App() {
   dom.parentDomino.style.display = "none";
   // Clock
