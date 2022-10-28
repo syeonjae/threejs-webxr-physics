@@ -8,10 +8,21 @@ import Toast from "./event/Toast";
 import HitTest from "./event/HitTest";
 import Raycaster from "./event/Raycaster";
 import dat from "dat.gui";
-import { cm1, cm2, dom, memebers, objects } from "./common/common";
+import {
+  cm1,
+  cm2,
+  dom,
+  memebers,
+  navItem,
+  objects,
+  system,
+} from "./common/common";
 import ItemSelect from "./event/ItemSelectEvent";
+import test from "./test/test";
 
 export default function App() {
+  test();
+
   dom.parentDomino.style.display = "none";
   // Clock
   const clock = new THREE.Clock();
@@ -59,8 +70,8 @@ export default function App() {
   cm1.world.defaultContactMaterial = defaultContactMaterial;
 
   // dat.GUI
-  const gui = new dat.GUI();
-  gui.add(cm2, "devMode");
+  // const gui = new dat.GUI();
+  // gui.add(cm2, "devMode");
 
   // Debugger
   const cannonDebugger = new CannonDebugger(cm1.scene, cm1.world, {});
@@ -169,7 +180,7 @@ export default function App() {
   function setXRModel() {
     // 바닥 설정이 완료 됐다면...
     if (cm2.isFloorSet) {
-      if (reticle.visible) {
+      if (!reticle.visible) {
         switch (memebers.currentModelName) {
           case "domino":
             memebers.currentModel = new Domino({
@@ -204,6 +215,17 @@ export default function App() {
               z: reticle.matrix.elements[14],
             });
             break;
+          default:
+            memebers.currentModel = new Domino({
+              scene: cm1.scene,
+              gltfLoader: cm1.gltfLoader,
+              reticle: reticle,
+              cannonWorld: cm1.world,
+              x: reticle.matrix.elements[12],
+              y: floorBody.position.y,
+              z: reticle.matrix.elements[14],
+            });
+            break;
         }
         objects.models.push(memebers.currentModel);
       }
@@ -223,9 +245,13 @@ export default function App() {
         memebers.currentModelName = item.children[0].dataset.name;
       });
     });
+    dom.itemsDom[0].style.opacity = 1;
   }
 
+  function init() {}
+
   // Call Function
+  init();
   animate();
   catchModel();
   ItemSelect();

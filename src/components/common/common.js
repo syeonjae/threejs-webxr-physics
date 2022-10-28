@@ -1,6 +1,7 @@
 import { World } from "cannon-es";
 import { Scene } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import isMobile from "../features/deviceCheck";
 
 export const cm1 = {
   scene: new Scene(),
@@ -25,6 +26,14 @@ export const dom = {
 export const memebers = {
   currentModelName: "",
   currentModel: "",
+};
+
+export const system = {
+  isMobile: isMobile(),
+};
+
+export const navItem = {
+  isOpen: false,
 };
 
 export const objects = {

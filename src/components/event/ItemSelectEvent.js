@@ -1,6 +1,11 @@
 import { Vector2 } from "three";
+import { cm1, dom, navItem, system } from "../common/common";
+import { PreventDragClick } from "./PreventDragClick";
 
 export default function ItemSelect() {
+  // Prevent Click
+  const preventClick = new PreventDragClick(dom.canvas);
+
   const parentDom = document.querySelector("#items-wrapper");
   const childDom = document.querySelector("#items");
   const diff = 79;
@@ -16,7 +21,11 @@ export default function ItemSelect() {
   let posY = 0;
 
   function mup(e) {
-    currentPos.y = e.clientY;
+    if (system.isMobile) {
+      currentPos.y = e.changedTouches[0].clientY;
+    } else {
+      currentPos.y = e.clientY;
+    }
 
     if (Math.abs(currentPos.y - prevPos.y) > 50) {
       // 민감도
@@ -49,9 +58,48 @@ export default function ItemSelect() {
     }
   }
   function mdown(e) {
-    prevPos.y = e.clientY;
+    if (system.isMobile) {
+      prevPos.y = e.touches[0].clientY;
+    } else {
+      prevPos.y = e.clientY;
+    }
   }
 
-  parentDom.addEventListener("mousedown", mdown, false);
-  parentDom.addEventListener("mouseup", mup, false);
+  function open(e) {
+    if (system.isMobile) {
+      parentDom.style.left = "-5%";
+
+      navItem.isOpen = !navItem.isOpen;
+
+      dom.canvas.addEventListener("touchstart", close, false);
+
+      // 스와이프 이벤트
+      parentDom.addEventListener("touchstart", mdown, false);
+      parentDom.addEventListener("touchend", mup, false);
+
+      parentDom.removeEventListener("touchstart", open, false);
+    }
+  }
+
+  function close(e) {
+    if (system.isMobile) {
+      console.log(preventClick.mouseMoved);
+      if (preventClick.mouseMoved) return;
+      parentDom.style.left = "-22%";
+
+      navItem.isOpen = !navItem.isOpen;
+
+      parentDom.addEventListener("touchstart", open, false);
+      dom.canvas.removeEventListener("touchstart", close, false);
+    }
+  }
+
+  if (system.isMobile) {
+    if (!navItem.isOpen) {
+      parentDom.addEventListener("touchstart", open, false);
+    }
+  } else {
+    parentDom.addEventListener("mousedown", mdown, false);
+    parentDom.addEventListener("mouseup", mup, false);
+  }
 }
