@@ -96,14 +96,16 @@ body {
 #items-wrapper {
   display: flex;
   justify-content: center;
-  /* overflow: hidden; */
+  overflow: hidden;
   border-radius: 15px;
   width: 100px;
   height: 237px;
   position: fixed;
   bottom: 20%;
   left: 5%;
-  border: 1px solid black;
+  background: rgba(0, 0, 0, 0.1);
+
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 }
 
 #items {
@@ -111,17 +113,19 @@ body {
   width: 64px;
   height: 632px;
   position: absolute;
-  top: 15px;
+  top: 0;
   border-radius: 15px;
-  border: 1px solid black;
+}
+.item:first-child {
+  margin-top: 7.5px;
 }
 
 .item {
+  transition: all 0.1s ease-in-out;
   cursor: pointer;
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  border: 1px solid black;
   margin-bottom: 15px;
 }
 
@@ -131,4 +135,10 @@ body {
 
 .item:active {
   background-color: #ccc;
+}
+
+.item img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
 }
