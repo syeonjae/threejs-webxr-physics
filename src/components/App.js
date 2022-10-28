@@ -1,18 +1,16 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { ARButton } from "three/examples/jsm/webxr/ARButton";
-import { Domino } from "./Domino";
+import { Domino, Soldier, Robot } from "./models/model";
 import * as CANNON from "cannon-es";
 import CannonDebugger from "cannon-es-debugger";
-import Toast from "./Toast";
-import HitTest from "./HitTest";
-import Raycaster from "./Raycaster";
+import Toast from "./event/Toast";
+import HitTest from "./event/HitTest";
+import Raycaster from "./event/Raycaster";
 import dat from "dat.gui";
-import { cm1, cm2, dom, objects } from "./common";
-import { PreventDragClick } from "./PreventDragClick";
-import test from "./test";
+import { cm1, cm2, dom, memebers, objects } from "./common/common";
+import ItemSelect from "./event/ItemSelectEvent";
 
-test();
 export default function App() {
   dom.parentDomino.style.display = "none";
   // Clock
@@ -65,15 +63,7 @@ export default function App() {
   gui.add(cm2, "devMode");
 
   // Debugger
-  const cannonDebugger = new CannonDebugger(cm1.scene, cm1.world, {
-    // onUpdate(body, mesh) {
-    //   if (cm2.devMode) {
-    //     mesh.visible = true;
-    //   } else {
-    //     mesh.visible = false;
-    //   }
-    // },
-  });
+  const cannonDebugger = new CannonDebugger(cm1.scene, cm1.world, {});
   // XR
   renderer.xr.enabled = true;
   let options = {
@@ -101,7 +91,7 @@ export default function App() {
   });
 
   function matchPhysics() {
-    objects.dominos.forEach((obj) => {
+    objects.models.forEach((obj) => {
       if (obj.cannonBody) {
         obj.model.position.copy(obj.cannonBody.position);
         obj.model.quaternion.copy(obj.cannonBody.quaternion);
@@ -176,36 +166,74 @@ export default function App() {
     cm1.world.addBody(floorBody);
     cm2.isFloorSet = true;
   }
-  function setXRDomino() {
+  function setXRModel() {
     // 바닥 설정이 완료 됐다면...
     if (cm2.isFloorSet) {
-      let i = 0;
       if (reticle.visible) {
-        let domino = new Domino({
-          index: i,
-          scene: cm1.scene,
-          gltfLoader: cm1.gltfLoader,
-          reticle: reticle,
-          cannonWorld: cm1.world,
-          x: reticle.matrix.elements[12],
-          y: floorBody.position.y,
-          z: reticle.matrix.elements[14],
-        });
-        objects.dominos.push(domino);
+        switch (memebers.currentModelName) {
+          case "domino":
+            memebers.currentModel = new Domino({
+              scene: cm1.scene,
+              gltfLoader: cm1.gltfLoader,
+              reticle: reticle,
+              cannonWorld: cm1.world,
+              x: reticle.matrix.elements[12],
+              y: floorBody.position.y,
+              z: reticle.matrix.elements[14],
+            });
+            break;
+          case "robot":
+            memebers.currentModel = new Robot({
+              scene: cm1.scene,
+              gltfLoader: cm1.gltfLoader,
+              reticle: reticle,
+              cannonWorld: cm1.world,
+              x: reticle.matrix.elements[12],
+              y: floorBody.position.y,
+              z: reticle.matrix.elements[14],
+            });
+            break;
+          case "soldier":
+            memebers.currentModel = new Soldier({
+              scene: cm1.scene,
+              gltfLoader: cm1.gltfLoader,
+              reticle: reticle,
+              cannonWorld: cm1.world,
+              x: reticle.matrix.elements[12],
+              y: floorBody.position.y,
+              z: reticle.matrix.elements[14],
+            });
+            break;
+        }
+        objects.models.push(memebers.currentModel);
       }
-      i++;
     } else {
       Toast("Floor 버튼을 눌러 Ground를 설정해주세요.", 2);
     }
   }
 
+  function catchModel() {
+    dom.itemsDom.forEach((item) => {
+      item.style.opacity = 0.2;
+      item.addEventListener("click", () => {
+        dom.itemsDom.forEach((item) => {
+          item.style.opacity = 0.2;
+        });
+        item.style.opacity = 1;
+        memebers.currentModelName = item.children[0].dataset.name;
+      });
+    });
+  }
+
   // Call Function
   animate();
+  catchModel();
+  ItemSelect();
 
   // Event
   window.addEventListener("resize", setSize, false);
 
-  dom.domino.addEventListener("click", setXRDomino, false);
+  dom.model.addEventListener("click", setXRModel, false);
 
   dom.floor.addEventListener("click", setXRFloor, false);
 }

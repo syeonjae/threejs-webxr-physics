@@ -1,6 +1,6 @@
 import { Vector2 } from "three";
 
-export default function test() {
+export default function ItemSelect() {
   const parentDom = document.querySelector("#items-wrapper");
   const childDom = document.querySelector("#items");
   const diff = 79;

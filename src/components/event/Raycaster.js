@@ -1,12 +1,9 @@
 // RayCaster
 import * as THREE from "three";
 import * as CANNON from "cannon-es";
-import { cm1, cm2, dom, objects } from "./common";
-import { Domino } from "./Domino";
+import { cm2, dom, memebers, objects } from "../common/common";
 import { PreventDragClick } from "./PreventDragClick";
 const preventDragClick = new PreventDragClick(dom.canvas);
-
-let spaceEvent = false;
 
 export default function Raycaster(args) {
   const raycaster = new THREE.Raycaster();
@@ -18,16 +15,7 @@ export default function Raycaster(args) {
     if (cm2.devMode) {
       if (intersects[0]) {
         if (preventDragClick.mouseMoved) return;
-        let domino = new Domino({
-          index: 0,
-          scene: cm1.scene,
-          gltfLoader: cm1.gltfLoader,
-          cannonWorld: cm1.world,
-          x: intersects[0].point.x,
-          y: intersects[0].point.y,
-          z: intersects[0].point.z,
-        });
-        objects.dominos.push(domino);
+        objects.models.push(memebers.currentModel);
       }
     } else {
       for (const intersect of intersects) {
