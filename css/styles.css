@@ -101,20 +101,24 @@ body {
   width: 100px;
   height: 237px;
   position: fixed;
-  bottom: 20%;
-  left: 5%;
+  left: -22%;
   background: rgba(0, 0, 0, 0.1);
-
   box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+
+  transition: all 1s ease-in-out;
+
+  /* border: 1px solid black; */
 }
 
 #items {
-  transition: all 1s ease-in-out;
+  transition: all 0.5s ease-in-out;
   width: 64px;
   height: 632px;
   position: absolute;
   top: 0;
   border-radius: 15px;
+
+  /* border: 1px solid black; */
 }
 .item:first-child {
   margin-top: 7.5px;
@@ -127,6 +131,8 @@ body {
   height: 64px;
   border-radius: 50%;
   margin-bottom: 15px;
+
+  /* border: 1px solid black; */
 }
 
 .item:last-child {
