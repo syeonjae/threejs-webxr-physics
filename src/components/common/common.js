@@ -5,7 +5,7 @@ import isMobile from "../features/deviceCheck";
 
 export const cm1 = {
   scene: new Scene(),
-  gltfLoader: new GLTFLoader().setPath("../../assets/models/"),
+  gltfLoader: new GLTFLoader().setPath("./assets/models/"),
   world: new World(),
 };
 

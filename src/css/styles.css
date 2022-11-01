@@ -101,11 +101,12 @@ body {
   width: 100px;
   height: 237px;
   position: fixed;
+  top: 1%;
   left: -22%;
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.5);
   box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 
-  transition: all 1s ease-in-out;
+  transition: all 0.8s ease-in-out;
 
   /* border: 1px solid black; */
 }

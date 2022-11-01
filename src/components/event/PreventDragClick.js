@@ -36,7 +36,6 @@ export class PreventDragClick {
       const yGap = Math.abs(e.changedTouches[0].clientY - clickStartY);
       const timeGap = Date.now() - clickStartTime;
 
-      console.log(xGap, yGap, timeGap);
       if (xGap > 5 || yGap > 5 || timeGap > 300) {
         this.mouseMoved = true;
       } else {

@@ -67,7 +67,7 @@ export default function ItemSelect() {
 
   function open(e) {
     if (system.isMobile) {
-      parentDom.style.left = "-5%";
+      parentDom.style.left = "-2%";
 
       navItem.isOpen = !navItem.isOpen;
 
@@ -83,7 +83,6 @@ export default function ItemSelect() {
 
   function close(e) {
     if (system.isMobile) {
-      console.log(preventClick.mouseMoved);
       if (preventClick.mouseMoved) return;
       parentDom.style.left = "-22%";
 

@@ -7,20 +7,13 @@ import CannonDebugger from "cannon-es-debugger";
 import Toast from "./event/Toast";
 import HitTest from "./event/HitTest";
 import Raycaster from "./event/Raycaster";
-import dat from "dat.gui";
-import {
-  cm1,
-  cm2,
-  dom,
-  memebers,
-  navItem,
-  objects,
-  system,
-} from "./common/common";
+// import dat from "dat.gui";
+import { cm1, cm2, dom, memebers, objects } from "./common/common";
 import ItemSelect from "./event/ItemSelectEvent";
 import test from "./test/test";
 
 export default function App() {
+  // Test Functions
   test();
 
   dom.parentDomino.style.display = "none";
@@ -248,10 +241,7 @@ export default function App() {
     dom.itemsDom[0].style.opacity = 1;
   }
 
-  function init() {}
-
   // Call Function
-  init();
   animate();
   catchModel();
   ItemSelect();

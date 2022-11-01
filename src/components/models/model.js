@@ -19,6 +19,12 @@ export class Model {
     this.rotationY = info.rotationY || 0;
     this.index = info.index;
 
+    this.physicsSize = new Vec3(
+      this.width / 2,
+      this.height / 2,
+      this.depth / 2
+    );
+
     info.gltfLoader.load(
       this.modelSrc,
       (glb) => {
@@ -35,14 +41,14 @@ export class Model {
       }
     );
 
-    this.setRemover();
+    // this.setRemover();
   }
 
   setCannonBody() {
     this.cannonBody = new Body({
       mass: 5,
       position: new Vec3(this.x, this.y, this.z),
-      shape: new Box(new Vec3(this.width / 2, this.height / 2, this.depth / 2)),
+      shape: new Box(this.physicsSize),
     });
     this.cannonBody.quaternion.setFromAxisAngle(
       new Vec3(0, 1, 0),
@@ -55,9 +61,9 @@ export class Model {
 
   setRemover() {
     const remover = setTimeout(() => {
-      this.cannonWorld.removeBody(this.cannonBody);
+      this.cannonWorld?.removeBody(this.cannonBody);
 
-      this.scene.remove(this.model);
+      this.scene?.remove(this.model);
       clearTimeout(remover);
     }, 5000);
   }
